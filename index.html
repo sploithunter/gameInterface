@@ -1,0 +1,1533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Artifact Window Demo</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.6.1/mermaid.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/12.3.0/math.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.6.0/p5.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/material.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/javascript/javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/htmlmixed/htmlmixed.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/xml/xml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/css/css.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/edit/closebrackets.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/edit/closetag.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/python/python.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
+    <style>
+        :root {
+            --bg-color: #f8f9fa;
+            --sidebar-bg: #ffffff;
+            --border-color: #e1e4e8;
+            --primary-color: #0366d6;
+            --text-color: #24292e;
+            --card-bg: #ffffff;
+            --hover-color: #f1f2f4;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            color: var(--text-color);
+            background-color: var(--bg-color);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background-color: var(--card-bg);
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .main-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .test-cases {
+            width: 300px;
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid var(--border-color);
+            overflow-y: auto;
+            padding: 1rem;
+        }
+
+        .artifact-window {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .artifact-header {
+            padding: 1rem;
+            background-color: var(--card-bg);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .artifact-content {
+            flex: 1;
+            padding: 1rem;
+            overflow: auto;
+            background-color: var(--card-bg);
+        }
+
+        .artifact-footer {
+            padding: 0.5rem 1rem;
+            background-color: var(--card-bg);
+            border-top: 1px solid var(--border-color);
+            font-size: 0.8rem;
+            color: #6a737d;
+        }
+
+        .test-case {
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background-color: var(--card-bg);
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .test-case:hover {
+            background-color: var(--hover-color);
+        }
+
+        .test-case h3 {
+            margin-top: 0;
+            margin-bottom: 0.5rem;
+        }
+
+        .test-case p {
+            margin: 0;
+            font-size: 0.9rem;
+            color: #6a737d;
+        }
+
+        button {
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background-color: var(--card-bg);
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        button:hover {
+            background-color: var(--hover-color);
+        }
+
+        pre {
+            background-color: #f6f8fa;
+            border-radius: 6px;
+            padding: 1rem;
+            overflow: auto;
+        }
+
+        .mermaid {
+            text-align: center;
+        }
+
+        svg {
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Artifact Window Demo</h1>
+    </div>
+    <div class="main-container">
+        <div class="test-cases">
+            <h2>Test Cases</h2>
+            <div class="test-case" onclick="loadSvgExample()">
+                <h3>SVG Example</h3>
+                <p>Renders a simple SVG with geometric shapes and colors</p>
+            </div>
+            <div class="test-case" onclick="loadReactExample()">
+                <h3>React Component</h3>
+                <p>Renders a React counter component with Tailwind styling</p>
+            </div>
+            <div class="test-case" onclick="loadJavaScriptExample()">
+                <h3>JavaScript Code</h3>
+                <p>Displays formatted JavaScript code with syntax highlighting</p>
+            </div>
+            <div class="test-case" onclick="loadMermaidExample()">
+                <h3>Mermaid Diagram</h3>
+                <p>Renders a flowchart using Mermaid.js</p>
+            </div>
+            <div class="test-case" onclick="loadMarkdownExample()">
+                <h3>Markdown Document</h3>
+                <p>Displays formatted Markdown content</p>
+            </div>
+            <div class="test-case" onclick="loadMathJSExample()">
+                <h3>Math.js Example</h3>
+                <p>Performs and displays mathematical calculations</p>
+            </div>
+            <div class="test-case" onclick="loadThreeJSExample()">
+                <h3>Three.js Example</h3>
+                <p>Renders a 3D scene with rotating cube</p>
+            </div>
+            <div class="test-case" onclick="loadP5Example()">
+                <h3>p5.js Example</h3>
+                <p>Interactive generative art with p5.js</p>
+            </div>
+            <div class="test-case" onclick="loadCodeEditorExample()">
+                <h3>Live Code Editor</h3>
+                <p>Interactive code editor with real-time execution</p>
+            </div>
+        </div>
+        <div class="artifact-window">
+            <div class="artifact-header">
+                <h2 id="artifact-title">Select a test case</h2>
+                <div>
+                    <button onclick="copyArtifact()">Copy</button>
+                    <button onclick="downloadArtifact()">Download</button>
+                </div>
+            </div>
+            <div class="artifact-content" id="content">
+                <p>Choose a test case from the left panel to view its content here.</p>
+            </div>
+            <div class="artifact-footer">
+                <span id="artifact-type">No artifact loaded</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Mermaid
+        mermaid.initialize({ startOnLoad: false });
+
+        // Current artifact data
+        let currentArtifact = {
+            title: "",
+            content: "",
+            type: ""
+        };
+
+        function setArtifact(title, content, type) {
+            currentArtifact = { title, content, type };
+            document.getElementById('artifact-title').textContent = title;
+            document.getElementById('artifact-type').textContent = type;
+            const artifactContent = document.getElementById('content');
+            
+            // Clear previous content
+            artifactContent.innerHTML = '';
+            
+            return artifactContent;
+        }
+
+        function loadSvgExample() {
+            const container = setArtifact("SVG Example", "", "image/svg+xml");
+            
+            const svgContent = `
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
+                <!-- Sky background -->
+                <rect width="400" height="300" fill="#87CEEB"/>
+                
+                <!-- Sun -->
+                <circle cx="320" cy="60" r="30" fill="#FFD700"/>
+                
+                <!-- Mountains -->
+                <path d="M0 180 L150 80 L300 180" fill="#808080"/>
+                <path d="M150 180 L280 100 L400 180" fill="#696969"/>
+                
+                <!-- Grass meadow -->
+                <path d="M0 180 C100 170, 300 170, 400 180 L400 300 L0 300 Z" fill="#3CB371"/>
+                
+                <!-- Tree -->
+                <rect x="50" y="150" width="10" height="30" fill="#8B4513"/>
+                <path d="M35 150 L75 150 L55 120 Z" fill="#228B22"/>
+                <path d="M38 130 L72 130 L55 100 Z" fill="#228B22"/>
+                <path d="M40 110 L70 110 L55 80 Z" fill="#228B22"/>
+            </svg>
+            `;
+            
+            container.innerHTML = svgContent;
+        }
+
+        function loadReactExample() {
+            const container = setArtifact("React Counter Component", "", "application/vnd.ant.react");
+            
+            // Create a div for React to render into
+            const reactRoot = document.createElement('div');
+            container.appendChild(reactRoot);
+            
+            // Define React component
+            const Counter = () => {
+                const [count, setCount] = React.useState(0);
+                
+                return React.createElement('div', { className: 'p-4 border rounded shadow-md max-w-md mx-auto' },
+                    React.createElement('h2', { className: 'text-xl font-bold mb-4' }, 'React Counter'),
+                    React.createElement('p', { className: 'mb-2' }, `Current count: ${count}`),
+                    React.createElement('div', { className: 'flex gap-2' },
+                        React.createElement('button', {
+                            className: 'px-4 py-2 bg-blue-500 text-white rounded',
+                            onClick: () => setCount(count - 1)
+                        }, 'Decrement'),
+                        React.createElement('button', {
+                            className: 'px-4 py-2 bg-blue-500 text-white rounded',
+                            onClick: () => setCount(count + 1)
+                        }, 'Increment')
+                    )
+                );
+            };
+            
+            // Render React component
+            ReactDOM.render(React.createElement(Counter), reactRoot);
+        }
+
+        function loadJavaScriptExample() {
+            const container = setArtifact("JavaScript Code Example", "", "application/vnd.ant.code");
+            
+            // Create a div for results
+            const resultsDiv = document.createElement('div');
+            resultsDiv.style.padding = '1rem';
+            resultsDiv.style.border = '1px solid #e1e4e8';
+            resultsDiv.style.borderRadius = '6px';
+            resultsDiv.style.marginBottom = '1rem';
+            resultsDiv.style.backgroundColor = '#f8f9fa';
+            
+            // Define the JavaScript code
+            const jsCode = `
+// Example function to analyze sales data
+function analyzeSales(salesData) {
+    // Calculate total revenue
+    const totalRevenue = salesData.reduce((sum, sale) => sum + sale.amount, 0);
+    
+    // Find highest sale
+    const highestSale = salesData.reduce(
+        (max, sale) => (sale.amount > max.amount ? sale : max),
+        salesData[0]
+    );
+    
+    // Group by month
+    const monthlySales = salesData.reduce((acc, sale) => {
+        const month = new Date(sale.date).getMonth();
+        acc[month] = (acc[month] || 0) + sale.amount;
+        return acc;
+    }, {});
+    
+    // Calculate average sale
+    const averageSale = totalRevenue / salesData.length;
+    
+    return {
+        totalRevenue,
+        highestSale,
+        monthlySales,
+        averageSale,
+        salesCount: salesData.length
+    };
+}
+
+// Example usage
+const sampleData = [
+    { date: '2023-01-15', amount: 120.50, customer: 'John Doe' },
+    { date: '2023-01-22', amount: 75.20, customer: 'Jane Smith' },
+    { date: '2023-02-05', amount: 200.00, customer: 'Bob Johnson' },
+    { date: '2023-02-18', amount: 50.75, customer: 'Alice Brown' },
+    { date: '2023-03-10', amount: 300.25, customer: 'Charlie Davis' }
+];
+
+const analysis = analyzeSales(sampleData);
+console.log(analysis);
+`;
+            
+            // Execute the code
+            try {
+                // Create a function from the code
+                const executeCode = new Function(jsCode + '; return {analyzeSales, sampleData, analysis};');
+                const result = executeCode();
+                
+                // Display the results
+                resultsDiv.innerHTML = `
+                <h3>Execution Results:</h3>
+                <p><strong>Total Revenue:</strong> $${result.analysis.totalRevenue.toFixed(2)}</p>
+                <p><strong>Highest Sale:</strong> $${result.analysis.highestSale.amount.toFixed(2)} (${result.analysis.highestSale.customer})</p>
+                <p><strong>Average Sale:</strong> $${result.analysis.averageSale.toFixed(2)}</p>
+                <p><strong>Sales Count:</strong> ${result.analysis.salesCount}</p>
+                <h4>Monthly Sales:</h4>
+                <ul>
+                    ${Object.entries(result.analysis.monthlySales).map(([month, amount]) => {
+                        const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
+                                           'July', 'August', 'September', 'October', 'November', 'December'];
+                        return `<li>${monthNames[month]}: $${amount.toFixed(2)}</li>`;
+                    }).join('')}
+                </ul>
+                `;
+                
+                container.appendChild(resultsDiv);
+            } catch (error) {
+                resultsDiv.innerHTML = `<p>Error executing code: ${error.message}</p>`;
+                container.appendChild(resultsDiv);
+            }
+            
+            // Display the code
+            const codeElement = document.createElement('pre');
+            codeElement.textContent = jsCode;
+            container.appendChild(codeElement);
+        }
+
+        function loadMermaidExample() {
+            const container = setArtifact("Mermaid Flowchart Example", "", "application/vnd.ant.mermaid");
+            
+            const mermaidDiv = document.createElement('div');
+            mermaidDiv.className = 'mermaid';
+            mermaidDiv.textContent = `
+stateDiagram-v2
+    [*] --> New: Ticket Created
+    
+    New --> Open: Agent Assignment
+    note right of New
+        24hr SLA for initial response
+    end note
+    
+    Open --> InProgress: Agent Starts Work
+    note right of Open
+        24hr SLA for status update
+    end note
+    
+    InProgress --> InProgress: Update Required
+    note right of InProgress
+        Must update customer if
+        more time needed
+    end note
+    
+    InProgress --> Resolved: Solution Provided
+    note right of Resolved
+        Awaiting customer
+        confirmation
+    end note
+    
+    Resolved --> InProgress: Customer Feedback Required
+    Resolved --> Closed: Customer Confirms Resolution
+    
+    Closed --> [*]
+`;
+            container.appendChild(mermaidDiv);
+            
+            // Render the Mermaid diagram
+            mermaid.render('mermaid-diagram', mermaidDiv.textContent).then(result => {
+                mermaidDiv.innerHTML = result.svg;
+            });
+        }
+
+        function loadMarkdownExample() {
+            const container = setArtifact("Markdown Document Example", "", "text/markdown");
+            
+            // Simple markdown renderer
+            function renderMarkdown(markdown) {
+                // Very basic markdown parser (not a complete implementation)
+                return markdown
+                    // Headers
+                    .replace(/^# (.*$)/gm, '<h1>$1</h1>')
+                    .replace(/^## (.*$)/gm, '<h2>$1</h2>')
+                    .replace(/^### (.*$)/gm, '<h3>$1</h3>')
+                    // Bold
+                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                    // Italic
+                    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                    // Lists
+                    .replace(/^\* (.*$)/gm, '<ul><li>$1</li></ul>')
+                    .replace(/^- (.*$)/gm, '<ul><li>$1</li></ul>')
+                    .replace(/^1\. (.*$)/gm, '<ol><li>$1</li></ol>')
+                    // Links
+                    .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2">$1</a>')
+                    // Code
+                    .replace(/`(.*?)`/g, '<code>$1</code>')
+                    // Paragraphs
+                    .replace(/\n\n/g, '</p><p>')
+                    // Fix duplicated list tags
+                    .replace(/<\/ul><ul>/g, '')
+                    .replace(/<\/ol><ol>/g, '');
+            }
+            
+            const markdown = `# Project Documentation
+
+## Introduction
+
+This is a **sample** document to demonstrate the *markdown rendering* capabilities of our artifact window.
+
+## Features
+
+* Responsive design
+* Cross-browser compatibility
+* Accessibility support
+* Performance optimization
+
+## Getting Started
+
+1. Clone the repository
+2. Install dependencies with \`npm install\`
+3. Start development server with \`npm start\`
+
+## API Reference
+
+The API documentation can be found at [our documentation site](https://example.com/docs).
+
+## Future Work
+
+We're planning to add more features in the upcoming releases, including:
+
+* Dark mode support
+* Internationalization
+* Advanced search capabilities
+* Performance metrics dashboard`;
+            
+            container.innerHTML = `<div style="padding: 1rem; border: 1px solid #e1e4e8; border-radius: 6px;">
+                ${renderMarkdown(markdown)}
+            </div>`;
+        }
+
+        function loadMathJSExample() {
+            const container = setArtifact("Math.js Calculations", "", "application/javascript");
+            
+            const resultDiv = document.createElement('div');
+            resultDiv.style.padding = '1rem';
+            resultDiv.style.border = '1px solid #e1e4e8';
+            resultDiv.style.borderRadius = '6px';
+            resultDiv.style.marginBottom = '1rem';
+            
+            // Perform some calculations
+            const calculations = [
+                { expression: '2 + 3 * 4', result: math.evaluate('2 + 3 * 4') },
+                { expression: 'sqrt(16) + 5^2', result: math.evaluate('sqrt(16) + 5^2') },
+                { expression: 'sin(45 deg)', result: math.evaluate('sin(45 deg)') },
+                { expression: 'det([[1, 2], [3, 4]])', result: math.evaluate('det([[1, 2], [3, 4]])') },
+                { expression: 'log(10000, 10)', result: math.evaluate('log(10000, 10)') },
+            ];
+            
+            let resultHtml = '<h3>Math.js Calculation Results</h3><table style="width: 100%; border-collapse: collapse;">';
+            resultHtml += '<tr><th style="text-align: left; padding: 8px; border: 1px solid #e1e4e8;">Expression</th><th style="text-align: left; padding: 8px; border: 1px solid #e1e4e8;">Result</th></tr>';
+            
+            for (const calc of calculations) {
+                resultHtml += `<tr>
+                    <td style="padding: 8px; border: 1px solid #e1e4e8;">${calc.expression}</td>
+                    <td style="padding: 8px; border: 1px solid #e1e4e8;">${calc.result}</td>
+                </tr>`;
+            }
+            
+            resultHtml += '</table>';
+            resultDiv.innerHTML = resultHtml;
+            container.appendChild(resultDiv);
+            
+            // Matrix operations
+            const matrixDiv = document.createElement('div');
+            matrixDiv.style.padding = '1rem';
+            matrixDiv.style.border = '1px solid #e1e4e8';
+            matrixDiv.style.borderRadius = '6px';
+            
+            const matrixA = math.matrix([[1, 2], [3, 4]]);
+            const matrixB = math.matrix([[5, 6], [7, 8]]);
+            const matrixAdd = math.add(matrixA, matrixB);
+            const matrixMult = math.multiply(matrixA, matrixB);
+            const matrixInv = math.inv(matrixA);
+            
+            matrixDiv.innerHTML = `
+            <h3>Matrix Operations</h3>
+            <p><strong>Matrix A:</strong><br>${math.format(matrixA)}</p>
+            <p><strong>Matrix B:</strong><br>${math.format(matrixB)}</p>
+            <p><strong>A + B:</strong><br>${math.format(matrixAdd)}</p>
+            <p><strong>A * B:</strong><br>${math.format(matrixMult)}</p>
+            <p><strong>A<sup>-1</sup>:</strong><br>${math.format(matrixInv)}</p>
+            `;
+            
+            container.appendChild(matrixDiv);
+        }
+
+        function loadThreeJSExample() {
+            const container = setArtifact("Three.js Example", "", "application/vnd.ant.threejs");
+            
+            // Create a canvas element
+            const canvas = document.createElement('canvas');
+            canvas.width = 400;
+            canvas.height = 300;
+            canvas.style.width = '100%';
+            canvas.style.height = '300px';
+            container.appendChild(canvas);
+            
+            // Create a scene
+            const scene = new THREE.Scene();
+            scene.background = new THREE.Color(0xf0f0f0);
+            
+            // Create a camera
+            const camera = new THREE.PerspectiveCamera(75, canvas.width / canvas.height, 0.1, 1000);
+            camera.position.z = 5;
+            
+            // Create a renderer
+            const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
+            renderer.setSize(canvas.width, canvas.height);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            
+            // Add lights
+            const ambientLight = new THREE.AmbientLight(0x404040);
+            scene.add(ambientLight);
+            
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+            directionalLight.position.set(1, 1, 1);
+            scene.add(directionalLight);
+            
+            // Create materials
+            const materials = [
+                new THREE.MeshPhongMaterial({ color: 0xff0000 }), // red
+                new THREE.MeshPhongMaterial({ color: 0x00ff00 }), // green
+                new THREE.MeshPhongMaterial({ color: 0x0000ff }), // blue
+                new THREE.MeshPhongMaterial({ color: 0xffff00 }), // yellow
+                new THREE.MeshPhongMaterial({ color: 0xff00ff }), // magenta
+                new THREE.MeshPhongMaterial({ color: 0x00ffff })  // cyan
+            ];
+            
+            // Create a cube
+            const geometry = new THREE.BoxGeometry(2, 2, 2);
+            const cube = new THREE.Mesh(geometry, materials);
+            scene.add(cube);
+            
+            // Create a sphere
+            const sphereGeometry = new THREE.SphereGeometry(1, 32, 32);
+            const sphereMaterial = new THREE.MeshPhongMaterial({ 
+                color: 0xffffff,
+                shininess: 100
+            });
+            const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+            sphere.position.x = -3;
+            scene.add(sphere);
+            
+            // Create a torus
+            const torusGeometry = new THREE.TorusGeometry(0.8, 0.3, 16, 100);
+            const torusMaterial = new THREE.MeshPhongMaterial({ 
+                color: 0xffaa00,
+                shininess: 100
+            });
+            const torus = new THREE.Mesh(torusGeometry, torusMaterial);
+            torus.position.x = 3;
+            scene.add(torus);
+            
+            // Add description
+            const description = document.createElement('div');
+            description.style.marginTop = '1rem';
+            description.innerHTML = `
+                <h3>Three.js 3D Scene</h3>
+                <p>This example demonstrates a simple 3D scene with three objects:</p>
+                <ul>
+                    <li>A multi-colored cube in the center</li>
+                    <li>A white sphere on the left</li>
+                    <li>A golden torus (donut) on the right</li>
+                </ul>
+                <p>All objects rotate continuously to demonstrate animation.</p>
+            `;
+            container.appendChild(description);
+            
+            // Animation loop
+            function animate() {
+                requestAnimationFrame(animate);
+                
+                cube.rotation.x += 0.01;
+                cube.rotation.y += 0.01;
+                
+                sphere.rotation.x += 0.01;
+                sphere.rotation.y += 0.005;
+                
+                torus.rotation.x += 0.01;
+                torus.rotation.z += 0.01;
+                
+                renderer.render(scene, camera);
+            }
+            
+            animate();
+        }
+
+        function loadP5Example() {
+            const container = setArtifact("p5.js Example", "", "application/vnd.ant.p5");
+            
+            // Create a div for the p5 sketch
+            const sketchDiv = document.createElement('div');
+            sketchDiv.id = 'p5-sketch';
+            sketchDiv.style.width = '100%';
+            sketchDiv.style.height = '400px';
+            sketchDiv.style.position = 'relative';
+            container.appendChild(sketchDiv);
+            
+            // Add description
+            const description = document.createElement('div');
+            description.style.marginTop = '1rem';
+            description.innerHTML = `
+                <h3>Interactive Particle System</h3>
+                <p>This example demonstrates a particle system created with p5.js:</p>
+                <ul>
+                    <li><strong>Mouse movement:</strong> Attracts particles</li>
+                    <li><strong>Click:</strong> Creates a burst of new particles</li>
+                    <li><strong>Particles:</strong> Change color based on position and time</li>
+                </ul>
+                <p>The particles have physics-based behavior with velocity and acceleration.</p>
+            `;
+            container.appendChild(description);
+            
+            // Create a p5.js instance
+            new p5(function(p) {
+                let particles = [];
+                const maxParticles = 100;
+                
+                p.setup = function() {
+                    const canvas = p.createCanvas(sketchDiv.clientWidth, 400);
+                    canvas.parent('p5-sketch');
+                    
+                    // Create initial particles
+                    for (let i = 0; i < 50; i++) {
+                        particles.push(createParticle());
+                    }
+                };
+                
+                p.draw = function() {
+                    p.background(20, 20, 30, 20);
+                    
+                    // Update and display particles
+                    for (let i = particles.length - 1; i >= 0; i--) {
+                        const particle = particles[i];
+                        
+                        // Apply mouse attraction
+                        if (p.mouseIsPressed) {
+                            const force = attractionForce(particle, p.createVector(p.mouseX, p.mouseY), 300);
+                            particle.applyForce(force.mult(5));
+                        } else if (p.mouseX > 0 && p.mouseX < p.width && p.mouseY > 0 && p.mouseY < p.height) {
+                            const force = attractionForce(particle, p.createVector(p.mouseX, p.mouseY), 100);
+                            particle.applyForce(force);
+                        }
+                        
+                        // Update and display
+                        particle.update();
+                        particle.display();
+                        
+                        // Remove dead particles
+                        if (particle.isDead()) {
+                            particles.splice(i, 1);
+                        }
+                    }
+                    
+                    // Add new particles to maintain count
+                    while (particles.length < maxParticles) {
+                        particles.push(createParticle());
+                    }
+                };
+                
+                p.mousePressed = function() {
+                    // Create a burst of particles on mouse press
+                    if (p.mouseX > 0 && p.mouseX < p.width && p.mouseY > 0 && p.mouseY < p.height) {
+                        for (let i = 0; i < 20; i++) {
+                            const particle = createParticle();
+                            particle.pos = p.createVector(p.mouseX, p.mouseY);
+                            particle.vel = p5.Vector.random2D().mult(p.random(2, 5));
+                            particle.lifespan = 255;
+                            particles.push(particle);
+                        }
+                    }
+                };
+                
+                function createParticle() {
+                    return {
+                        pos: p.createVector(p.random(p.width), p.random(p.height)),
+                        vel: p.createVector(p.random(-1, 1), p.random(-1, 1)),
+                        acc: p.createVector(0, 0),
+                        size: p.random(4, 12),
+                        lifespan: 255,
+                        
+                        update: function() {
+                            this.vel.add(this.acc);
+                            this.vel.limit(5);
+                            this.pos.add(this.vel);
+                            this.acc.mult(0);
+                            this.lifespan -= 1;
+                            
+                            // Bounce off edges
+                            if (this.pos.x < 0 || this.pos.x > p.width) {
+                                this.vel.x *= -0.8;
+                            }
+                            if (this.pos.y < 0 || this.pos.y > p.height) {
+                                this.vel.y *= -0.8;
+                            }
+                            
+                            // Keep within bounds
+                            this.pos.x = p.constrain(this.pos.x, 0, p.width);
+                            this.pos.y = p.constrain(this.pos.y, 0, p.height);
+                        },
+                        
+                        applyForce: function(force) {
+                            this.acc.add(force);
+                        },
+                        
+                        display: function() {
+                            // Calculate color based on position and time
+                            const hue = (p.frameCount * 0.5 + this.pos.x * 0.5) % 360;
+                            p.colorMode(p.HSB, 360, 100, 100, 255);
+                            p.noStroke();
+                            p.fill(hue, 80, 90, this.lifespan);
+                            
+                            p.ellipse(this.pos.x, this.pos.y, this.size, this.size);
+                            
+                            // Reset color mode
+                            p.colorMode(p.RGB, 255, 255, 255, 255);
+                        },
+                        
+                        isDead: function() {
+                            return this.lifespan <= 0;
+                        }
+                    };
+                }
+                
+                function attractionForce(particle, target, radius) {
+                    // Calculate direction of force
+                    const force = p5.Vector.sub(target, particle.pos);
+                    
+                    // Distance between objects
+                    const distance = force.mag();
+                    
+                    // Limiting the distance to eliminate extreme values
+                    const d = p.constrain(distance, 5, radius);
+                    
+                    // Normalize vector (distance doesn't matter here, we just want direction)
+                    force.normalize();
+                    
+                    // Calculate gravitational force magnitude
+                    const strength = (radius - d) / radius;
+                    
+                    // Get force vector -> magnitude * direction
+                    force.mult(strength * 0.5);
+                    
+                    return force;
+                }
+                
+                // Handle window resize
+                p.windowResized = function() {
+                    p.resizeCanvas(sketchDiv.clientWidth, 400);
+                };
+            });
+        }
+
+        function loadCodeEditorExample() {
+            const mimeType = "application/vnd.ant.code-editor";
+            const content = document.getElementById('content');
+            content.innerHTML = '';
+            
+            // Create main container
+            const editorContainer = document.createElement('div');
+            editorContainer.className = 'editor-container';
+            editorContainer.style.display = 'flex';
+            editorContainer.style.flexDirection = 'column';
+            editorContainer.style.gap = '10px';
+            editorContainer.style.padding = '20px';
+            editorContainer.style.height = '100%';
+            
+            // Add description
+            const description = document.createElement('div');
+            description.innerHTML = `
+                <h2>Live Code Editor</h2>
+                <p>This interactive code editor allows you to write and execute code in real-time. 
+                Currently supports JavaScript, HTML, JSON, Python, and RTI Connext DDS Python examples.</p>
+            `;
+            editorContainer.appendChild(description);
+            
+            // Create language selector
+            const languageSelector = document.createElement('select');
+            languageSelector.id = 'language-selector';
+            languageSelector.style.padding = '8px';
+            languageSelector.style.marginBottom = '10px';
+            
+            const languages = [
+                { value: 'javascript', label: 'JavaScript' },
+                { value: 'html', label: 'HTML' },
+                { value: 'json', label: 'JSON' },
+                { value: 'python', label: 'Python' },
+                { value: 'dds-python', label: 'DDS Python' }
+            ];
+            
+            languages.forEach(lang => {
+                const option = document.createElement('option');
+                option.value = lang.value;
+                option.textContent = lang.label;
+                languageSelector.appendChild(option);
+            });
+            
+            editorContainer.appendChild(languageSelector);
+            
+            // Create editor area
+            const editorArea = document.createElement('div');
+            editorArea.style.flex = '1';
+            editorArea.style.display = 'flex';
+            editorArea.style.flexDirection = 'column';
+            editorArea.style.border = '1px solid #ccc';
+            editorArea.style.borderRadius = '4px';
+            editorArea.style.overflow = 'hidden';
+            
+            const textarea = document.createElement('textarea');
+            textarea.id = 'code-editor';
+            editorArea.appendChild(textarea);
+            editorContainer.appendChild(editorArea);
+            
+            // Sample code for different languages
+            const sampleCode = {
+                javascript: `// JavaScript Example
+function fibonacci(n) {
+    if (n <= 1) return n;
+    return fibonacci(n-1) + fibonacci(n-2);
+}
+
+// Calculate first 10 Fibonacci numbers
+const results = [];
+for (let i = 0; i < 10; i++) {
+    results.push(fibonacci(i));
+}
+
+console.log("Fibonacci sequence:", results);
+document.getElementById("result").innerHTML = 
+    "<h3>Fibonacci Sequence:</h3>" + 
+    "<p>" + results.join(", ") + "</p>";`,
+
+                html: `<!-- HTML Example -->
+<div style="font-family: Arial, sans-serif; max-width: 500px;">
+    <h2 style="color: #2c3e50;">Interactive Card</h2>
+    <div style="border: 1px solid #ddd; border-radius: 8px; padding: 15px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+        <img src="https://via.placeholder.com/150" style="width: 100%; border-radius: 4px;">
+        <h3 style="color: #3498db;">Card Title</h3>
+        <p>This is a sample card created with HTML and inline CSS.</p>
+        <button onclick="alert('Button clicked!')" style="background: #3498db; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">
+            Click Me
+        </button>
+    </div>
+</div>`,
+
+                json: `{
+    "project": "Live Code Editor",
+    "version": "1.0.0",
+    "features": [
+        "Syntax highlighting",
+        "Multiple language support",
+        "Real-time execution"
+    ],
+    "languages": {
+        "javascript": {
+            "version": "ES6+",
+            "enabled": true
+        },
+        "html": {
+            "version": "HTML5",
+            "enabled": true
+        },
+        "json": {
+            "version": "JSON5",
+            "enabled": true
+        },
+        "python": {
+            "version": "3.10",
+            "enabled": true
+        }
+    },
+    "stats": {
+        "users": 1250,
+        "averageRating": 4.7,
+        "totalExecutions": 15800
+    }
+}`,
+
+                python: `# Python Example
+def is_prime(n):
+    """Check if a number is prime"""
+    if n <= 1:
+        return False
+    if n <= 3:
+        return True
+    if n % 2 == 0 or n % 3 == 0:
+        return False
+    i = 5
+    while i * i <= n:
+        if n % i == 0 or n % (i + 2) == 0:
+            return False
+        i += 6
+    return True
+
+# Find prime numbers up to 50
+primes = [n for n in range(2, 51) if is_prime(n)]
+print(f"Prime numbers up to 50: {primes}")
+
+# Calculate sum of primes
+prime_sum = sum(primes)
+print(f"Sum of primes: {prime_sum}")
+
+# Create HTML output
+from html import escape
+output = f"""
+<h3>Prime Numbers Analysis</h3>
+<p>Prime numbers up to 50: {escape(str(primes))}</p>
+<p>Count: {len(primes)}</p>
+<p>Sum: {prime_sum}</p>
+<p>Average: {prime_sum/len(primes):.2f}</p>
+"""
+output`,
+
+                'dds-python': `# RTI Connext DDS Python API Example
+# Note: This is a demonstration example and requires the RTI Connext DDS Python API to run
+
+import rti.connextdds as dds
+import time
+
+# Define a simple data type
+@dds.topic_type
+class Temperature:
+    sensor_id: str = ""
+    value: float = 0.0
+    timestamp: int = 0
+
+# Create a DDS participant
+participant = dds.DomainParticipant(0)
+
+# Create a topic
+topic = dds.Topic(participant, "Temperature", Temperature)
+
+# Create a publisher and subscriber
+publisher = dds.Publisher(participant)
+subscriber = dds.Subscriber(participant)
+
+# Create a writer
+writer = dds.DataWriter(publisher, topic)
+
+# Create a reader with a listener
+class TemperatureListener(dds.NoOpDataReaderListener):
+    def on_data_available(self, reader):
+        # Read all samples
+        for sample in reader.take():
+            # Check if this is valid data
+            if sample.info.valid:
+                temperature = sample.data
+                print(f"Received: Sensor {temperature.sensor_id}, " +
+                      f"Temperature: {temperature.value}°C, " +
+                      f"Time: {temperature.timestamp}")
+                
+                # Access instance state
+                state = sample.info.state.instance_state
+                if state == dds.InstanceState.ALIVE:
+                    print("Instance state: ALIVE")
+                elif state == dds.InstanceState.NOT_ALIVE_DISPOSED:
+                    print("Instance state: DISPOSED")
+                elif state == dds.InstanceState.NOT_ALIVE_NO_WRITERS:
+                    print("Instance state: NO_WRITERS")
+
+# Create a reader with the listener
+reader = dds.DataReader(subscriber, topic, listener=TemperatureListener())
+
+# Publish some samples
+for i in range(5):
+    sample = Temperature(
+        sensor_id=f"Sensor-{i+1}",
+        value=20.0 + i,
+        timestamp=int(time.time())
+    )
+    print(f"Publishing: Sensor {sample.sensor_id}, Temperature: {sample.value}°C")
+    writer.write(sample)
+    time.sleep(0.5)  # Wait a bit between samples
+
+# Wait for samples to be received
+time.sleep(2)
+
+# Cleanup
+participant.close()
+
+print("DDS example completed")
+
+# Return HTML output for display
+output = """
+<h3>RTI Connext DDS Python API Example</h3>
+<p>This example demonstrates the use of RTI Connext DDS Python API for publishing and subscribing to data.</p>
+<p>Key concepts demonstrated:</p>
+<ul>
+    <li>Creating DDS entities (Participant, Topic, Publisher, Subscriber)</li>
+    <li>Defining a data type with annotations</li>
+    <li>Publishing data samples</li>
+    <li>Receiving data with a listener</li>
+    <li>Accessing sample information including instance state</li>
+</ul>
+<p>Note: This code requires the RTI Connext DDS Python API to be installed to run.</p>
+"""
+output`
+            };
+            
+            // Create controls
+            const controlsContainer = document.createElement('div');
+            controlsContainer.style.display = 'flex';
+            controlsContainer.style.gap = '10px';
+            controlsContainer.style.marginTop = '10px';
+            
+            const runButton = document.createElement('button');
+            runButton.textContent = 'Run Code';
+            runButton.style.padding = '8px 16px';
+            runButton.style.backgroundColor = '#4CAF50';
+            runButton.style.color = 'white';
+            runButton.style.border = 'none';
+            runButton.style.borderRadius = '4px';
+            runButton.style.cursor = 'pointer';
+            
+            const clearButton = document.createElement('button');
+            clearButton.textContent = 'Clear Results';
+            clearButton.style.padding = '8px 16px';
+            clearButton.style.backgroundColor = '#f44336';
+            clearButton.style.color = 'white';
+            clearButton.style.border = 'none';
+            clearButton.style.borderRadius = '4px';
+            clearButton.style.cursor = 'pointer';
+            
+            controlsContainer.appendChild(runButton);
+            controlsContainer.appendChild(clearButton);
+            editorContainer.appendChild(controlsContainer);
+            
+            // Create results area
+            const resultsContainer = document.createElement('div');
+            resultsContainer.style.marginTop = '20px';
+            
+            const resultsTabs = document.createElement('div');
+            resultsTabs.style.display = 'flex';
+            resultsTabs.style.borderBottom = '1px solid #ccc';
+            
+            const outputTab = document.createElement('div');
+            outputTab.textContent = 'Output';
+            outputTab.className = 'active-tab';
+            outputTab.style.padding = '8px 16px';
+            outputTab.style.cursor = 'pointer';
+            outputTab.style.backgroundColor = '#f1f1f1';
+            outputTab.style.borderTopLeftRadius = '4px';
+            outputTab.style.borderTopRightRadius = '4px';
+            
+            const consoleTab = document.createElement('div');
+            consoleTab.textContent = 'Console';
+            consoleTab.style.padding = '8px 16px';
+            consoleTab.style.cursor = 'pointer';
+            
+            resultsTabs.appendChild(outputTab);
+            resultsTabs.appendChild(consoleTab);
+            resultsContainer.appendChild(resultsTabs);
+            
+            const resultsOutput = document.createElement('div');
+            resultsOutput.id = 'result';
+            resultsOutput.style.padding = '15px';
+            resultsOutput.style.border = '1px solid #ccc';
+            resultsOutput.style.borderTop = 'none';
+            resultsOutput.style.minHeight = '150px';
+            resultsOutput.style.maxHeight = '300px';
+            resultsOutput.style.overflow = 'auto';
+            resultsOutput.style.backgroundColor = 'white';
+            
+            const consoleOutput = document.createElement('div');
+            consoleOutput.id = 'console-output';
+            consoleOutput.style.padding = '15px';
+            consoleOutput.style.border = '1px solid #ccc';
+            consoleOutput.style.borderTop = 'none';
+            consoleOutput.style.minHeight = '150px';
+            consoleOutput.style.maxHeight = '300px';
+            consoleOutput.style.overflow = 'auto';
+            consoleOutput.style.backgroundColor = '#f9f9f9';
+            consoleOutput.style.fontFamily = 'monospace';
+            consoleOutput.style.display = 'none';
+            
+            resultsContainer.appendChild(resultsOutput);
+            resultsContainer.appendChild(consoleOutput);
+            editorContainer.appendChild(resultsContainer);
+            
+            content.appendChild(editorContainer);
+            
+            // Initialize CodeMirror
+            let editor = CodeMirror.fromTextArea(textarea, {
+                lineNumbers: true,
+                mode: 'javascript',
+                theme: 'material',
+                autoCloseBrackets: true,
+                autoCloseTags: true,
+                indentUnit: 4,
+                tabSize: 4,
+                indentWithTabs: false,
+                lineWrapping: true
+            });
+            
+            editor.setSize('100%', '400px');
+            editor.setValue(sampleCode.javascript);
+            
+            // Initialize Pyodide
+            let pyodide = null;
+            async function loadPyodide() {
+                if (!pyodide) {
+                    consoleOutput.innerHTML = 'Loading Python interpreter...';
+                    try {
+                        pyodide = await window.loadPyodide({
+                            indexURL: "https://cdn.jsdelivr.net/pyodide/v0.23.4/full/"
+                        });
+                        consoleOutput.innerHTML = 'Python interpreter loaded successfully!';
+                    } catch (error) {
+                        consoleOutput.innerHTML = 'Error loading Python interpreter: ' + error.message;
+                        console.error('Pyodide loading error:', error);
+                    }
+                }
+                return pyodide;
+            }
+            
+            // Load Pyodide when Python is selected
+            languageSelector.addEventListener('change', function() {
+                const language = this.value;
+                
+                // Update editor mode
+                switch(language) {
+                    case 'javascript':
+                        editor.setOption('mode', 'javascript');
+                        break;
+                    case 'html':
+                        editor.setOption('mode', 'htmlmixed');
+                        break;
+                    case 'json':
+                        editor.setOption('mode', { name: 'javascript', json: true });
+                        break;
+                    case 'python':
+                    case 'dds-python':
+                        editor.setOption('mode', 'python');
+                        if (language === 'python') {
+                            // Start loading Pyodide in the background
+                            consoleOutput.innerHTML = 'Preloading Python interpreter...';
+                            // Show console tab for Python
+                            consoleTab.click();
+                            
+                            loadPyodide().then(() => {
+                                consoleOutput.innerHTML = 'Python interpreter ready!';
+                            }).catch(err => {
+                                consoleOutput.innerHTML = 'Error preloading Python: ' + err.message;
+                                console.error('Pyodide preloading error:', err);
+                            });
+                        }
+                        break;
+                }
+                
+                // Set sample code
+                editor.setValue(sampleCode[language]);
+                
+                // Show note for DDS Python
+                if (language === 'dds-python') {
+                    const note = document.createElement('div');
+                    note.id = 'dds-note';
+                    note.style.marginTop = '10px';
+                    note.style.padding = '10px';
+                    note.style.backgroundColor = '#fff3cd';
+                    note.style.border = '1px solid #ffeeba';
+                    note.style.borderRadius = '4px';
+                    note.style.color = '#856404';
+                    note.innerHTML = `
+                        <strong>Note:</strong> This example demonstrates RTI Connext DDS Python API usage.
+                        The code won't execute in the browser as it requires the RTI Connext DDS libraries.
+                        This is for educational purposes only.
+                    `;
+                    
+                    // Remove existing note if any
+                    const existingNote = document.getElementById('dds-note');
+                    if (existingNote) {
+                        existingNote.remove();
+                    }
+                    
+                    // Add note after controls
+                    controlsContainer.parentNode.insertBefore(note, controlsContainer.nextSibling);
+                } else {
+                    // Remove note if exists
+                    const existingNote = document.getElementById('dds-note');
+                    if (existingNote) {
+                        existingNote.remove();
+                    }
+                }
+            });
+            
+            // Tab switching
+            outputTab.addEventListener('click', function() {
+                outputTab.style.backgroundColor = '#f1f1f1';
+                consoleTab.style.backgroundColor = 'transparent';
+                resultsOutput.style.display = 'block';
+                consoleOutput.style.display = 'none';
+            });
+            
+            consoleTab.addEventListener('click', function() {
+                consoleTab.style.backgroundColor = '#f1f1f1';
+                outputTab.style.backgroundColor = 'transparent';
+                consoleOutput.style.display = 'block';
+                resultsOutput.style.display = 'none';
+            });
+            
+            // Console log capture
+            const originalConsoleLog = console.log;
+            const originalConsoleError = console.error;
+            const originalConsoleWarn = console.warn;
+            const originalConsoleInfo = console.info;
+            
+            function captureConsole() {
+                console.log = function() {
+                    const args = Array.from(arguments);
+                    consoleOutput.innerHTML += `<div style="color: #333;">LOG: ${args.join(' ')}</div>`;
+                    originalConsoleLog.apply(console, arguments);
+                };
+                
+                console.error = function() {
+                    const args = Array.from(arguments);
+                    consoleOutput.innerHTML += `<div style="color: #f44336;">ERROR: ${args.join(' ')}</div>`;
+                    originalConsoleError.apply(console, arguments);
+                };
+                
+                console.warn = function() {
+                    const args = Array.from(arguments);
+                    consoleOutput.innerHTML += `<div style="color: #ff9800;">WARN: ${args.join(' ')}</div>`;
+                    originalConsoleWarn.apply(console, arguments);
+                };
+                
+                console.info = function() {
+                    const args = Array.from(arguments);
+                    consoleOutput.innerHTML += `<div style="color: #2196f3;">INFO: ${args.join(' ')}</div>`;
+                    originalConsoleInfo.apply(console, arguments);
+                };
+            }
+            
+            function restoreConsole() {
+                console.log = originalConsoleLog;
+                console.error = originalConsoleError;
+                console.warn = originalConsoleWarn;
+                console.info = originalConsoleInfo;
+            }
+            
+            // Run code button
+            runButton.addEventListener('click', async function() {
+                const language = languageSelector.value;
+                const code = editor.getValue();
+                
+                resultsOutput.innerHTML = '';
+                consoleOutput.innerHTML = '';
+                
+                try {
+                    captureConsole();
+                    
+                    switch(language) {
+                        case 'javascript':
+                            // Create a function from the code and execute it
+                            const jsFunction = new Function(code);
+                            jsFunction();
+                            break;
+                            
+                        case 'html':
+                            // Display HTML directly
+                            resultsOutput.innerHTML = code;
+                            break;
+                            
+                        case 'json':
+                            // Parse and display formatted JSON
+                            try {
+                                const jsonObj = JSON.parse(code);
+                                resultsOutput.innerHTML = `<pre style="color: #333;">${JSON.stringify(jsonObj, null, 2)}</pre>`;
+                            } catch (jsonError) {
+                                throw new Error(`JSON Parse Error: ${jsonError.message}`);
+                            }
+                            break;
+                            
+                        case 'dds-python':
+                            // Special handling for DDS Python example
+                            resultsOutput.innerHTML = `
+                                <div style="padding: 15px; background-color: #f8f9fa; border-radius: 4px;">
+                                    <h3>RTI Connext DDS Python API Example</h3>
+                                    <p>This code demonstrates how to use the RTI Connext DDS Python API, but cannot be executed in the browser.</p>
+                                    <p>Key features shown in this example:</p>
+                                    <ul>
+                                        <li>Creating DDS entities (Participant, Topic, Publisher, Subscriber)</li>
+                                        <li>Defining a data type with annotations</li>
+                                        <li>Publishing and subscribing to data</li>
+                                        <li>Using listeners to receive data</li>
+                                        <li>Accessing sample information including instance state</li>
+                                    </ul>
+                                    <p>To run this code, you would need:</p>
+                                    <ol>
+                                        <li>RTI Connext DDS Professional or a compatible version</li>
+                                        <li>The RTI Connext DDS Python API installed</li>
+                                        <li>Proper environment setup for RTI Connext DDS</li>
+                                    </ol>
+                                    <p>For more information, visit the <a href="https://community.rti.com/static/documentation/connext-dds/current/doc/api/connext_dds/api_python/index.html" target="_blank">RTI Connext DDS Python API documentation</a>.</p>
+                                </div>
+                            `;
+                            break;
+                            
+                        case 'python':
+                            // Show loading message
+                            resultsOutput.innerHTML = '<div style="color: #666;">Loading Python interpreter...</div>';
+                            consoleOutput.innerHTML = 'Loading Python interpreter...';
+                            
+                            try {
+                                // Make sure Pyodide is loaded
+                                if (!pyodide) {
+                                    // Load Pyodide if not already loaded
+                                    pyodide = await window.loadPyodide({
+                                        indexURL: "https://cdn.jsdelivr.net/pyodide/v0.23.4/full/"
+                                    });
+                                    consoleOutput.innerHTML += '<div>Python interpreter loaded successfully!</div>';
+                                }
+                                
+                                // Set up stdout/stderr redirection
+                                await pyodide.runPythonAsync(`
+                                    import sys
+                                    from js import console
+                                    
+                                    class PyConsole:
+                                        def __init__(self, console_func):
+                                            self.console_func = console_func
+                                            self.buffer = ""
+                                        
+                                        def write(self, text):
+                                            self.buffer += text
+                                            if text.endswith('\\n'):
+                                                self.console_func(self.buffer.strip())
+                                                self.buffer = ""
+                                            return len(text)
+                                        
+                                        def flush(self):
+                                            if self.buffer:
+                                                self.console_func(self.buffer)
+                                                self.buffer = ""
+                                
+                                    sys.stdout = PyConsole(console.log)
+                                    sys.stderr = PyConsole(console.error)
+                                `);
+                                
+                                // Run the actual Python code
+                                const result = await pyodide.runPythonAsync(code);
+                                
+                                // Display the result
+                                if (result !== undefined) {
+                                    if (typeof result === 'string' && result.trim().startsWith('<')) {
+                                        // If result looks like HTML, render it
+                                        resultsOutput.innerHTML = result;
+                                    } else {
+                                        // Otherwise show as text
+                                        resultsOutput.textContent = String(result);
+                                    }
+                                } else {
+                                    resultsOutput.innerHTML = '<div style="color: #666;">Code executed successfully with no return value.</div>';
+                                }
+                            } catch (pyError) {
+                                throw new Error(`Python Error: ${pyError.message || pyError}`);
+                            }
+                            break;
+                    }
+                } catch (error) {
+                    console.error(error);
+                    resultsOutput.innerHTML = `<div style="color: red; font-family: monospace;">
+                        <strong>Error:</strong> ${error.message}
+                    </div>`;
+                } finally {
+                    restoreConsole();
+                }
+            });
+            
+            // Clear results button
+            clearButton.addEventListener('click', function() {
+                resultsOutput.innerHTML = '';
+                consoleOutput.innerHTML = '';
+            });
+            
+            // Set MIME type
+            content.setAttribute('data-mime-type', mimeType);
+        }
+
+        function copyArtifact() {
+            if (!currentArtifact.content) {
+                alert('No artifact content to copy.');
+                return;
+            }
+            
+            const artifactElement = document.getElementById('content');
+            
+            // Create a range and select the content
+            const range = document.createRange();
+            range.selectNode(artifactElement);
+            window.getSelection().removeAllRanges();
+            window.getSelection().addRange(range);
+            
+            // Copy the selection
+            document.execCommand('copy');
+            
+            // Deselect
+            window.getSelection().removeAllRanges();
+            
+            alert('Artifact copied to clipboard!');
+        }
+
+        function downloadArtifact() {
+            if (!currentArtifact.content && !document.getElementById('content').innerHTML) {
+                alert('No artifact content to download.');
+                return;
+            }
+            
+            let content = currentArtifact.content || document.getElementById('content').innerHTML;
+            let type = currentArtifact.type;
+            let extension = 'txt';
+            
+            // Determine file extension based on type
+            if (type === 'image/svg+xml') {
+                extension = 'svg';
+            } else if (type === 'application/vnd.ant.code' || type === 'application/javascript') {
+                extension = 'js';
+            } else if (type === 'application/vnd.ant.mermaid') {
+                extension = 'mmd';
+            } else if (type === 'text/markdown') {
+                extension = 'md';
+            } else if (type === 'application/vnd.ant.react') {
+                extension = 'jsx';
+            } else if (type === 'application/vnd.ant.threejs') {
+                extension = 'js';
+            } else if (type === 'application/vnd.ant.p5') {
+                extension = 'p5';
+            }
+            
+            // Create a blob and download link
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `artifact.${extension}`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // Show a welcome message
+        document.addEventListener('DOMContentLoaded', function() {
+            const container = document.getElementById('content');
+            container.innerHTML = `
+            <div style="text-align: center; padding: 2rem;">
+                <h2>Welcome to the Artifact Window Demo</h2>
+                <p>This demo showcases the ability to render different types of content in an artifact window.</p>
+                <p>Select a test case from the left sidebar to see it in action.</p>
+                <ul style="text-align: left; display: inline-block;">
+                    <li>SVG graphics</li>
+                    <li>React components</li>
+                    <li>JavaScript code</li>
+                    <li>Mermaid diagrams</li>
+                    <li>Markdown documents</li>
+                    <li>Math.js calculations</li>
+                    <li>Three.js examples</li>
+                    <li>p5.js examples</li>
+                </ul>
+            </div>
+            `;
+        });
+    </script>
+</body>
+</html>
