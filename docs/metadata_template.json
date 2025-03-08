@@ -1,0 +1,56 @@
+{
+    "game": {
+        "name": "[Game Name]",
+        "category": "[Game Category]",
+        "originalPrompt": "[Original prompt text]",
+        "difficulty": "[Beginner/Intermediate/Advanced]"
+    },
+    "implementation": {
+        "model": "[Your Model Name]",
+        "version": "[Your Model Version]",
+        "dateCreated": "YYYY-MM-DD",
+        "timeSpent": 0,
+        "assistingModels": [
+            {
+                "model": "[Assistant Model Name]",
+                "purpose": "[Purpose of assistance]",
+                "timeSpent": 0
+            }
+        ],
+        "developmentEnvironment": {
+            "primaryIDE": "[IDE Name]",
+            "extensions": [
+                "[List of relevant extensions or tools]"
+            ]
+        }
+    },
+    "development": {
+        "challenges": [
+            "[Challenge 1]",
+            "[Challenge 2]",
+            "[Challenge 3]"
+        ],
+        "solutions": [
+            "[Solution 1]",
+            "[Solution 2]",
+            "[Solution 3]"
+        ],
+        "learnings": [
+            "[Learning 1]",
+            "[Learning 2]",
+            "[Learning 3]"
+        ]
+    },
+    "performance": {
+        "targetFPS": "[Target frames per second or N/A]",
+        "minimumRequirements": {
+            "browser": "[Browser requirements]",
+            "screen": "[Screen size requirements]"
+        }
+    },
+    "notes": [
+        "[Additional note 1]",
+        "[Additional note 2]",
+        "[Additional note 3]"
+    ]
+} 

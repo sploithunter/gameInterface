@@ -1,0 +1,54 @@
+{
+    "game": {
+        "name": "Game Name",
+        "category": "Game Category",
+        "originalPrompt": "The original prompt text",
+        "difficulty": "Beginner/Intermediate/Advanced"
+    },
+    "implementation": {
+        "model": {
+            "primary": "Model Name",
+            "debug": ["Debug Model 1", "Debug Model 2"]
+        },
+        "version": "1.0",
+        "dateCreated": "YYYY-MM-DD",
+        "timeSpent": 0,
+        "assistingModels": [],
+        "developmentEnvironment": {
+            "primaryIDE": "IDE Name",
+            "extensions": [
+                "List of relevant extensions or tools"
+            ]
+        }
+    },
+    "dependencies": {
+        "scripts": [
+            "https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.6.0/p5.min.js",
+            "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"
+        ],
+        "styles": [
+            "/games/shared/common.css"
+        ]
+    },
+    "development": {
+        "challenges": [
+            "List of challenges encountered"
+        ],
+        "solutions": [
+            "List of solutions implemented"
+        ],
+        "learnings": [
+            "List of key learnings from the process"
+        ]
+    },
+    "performance": {
+        "targetFPS": "Target frames per second or N/A",
+        "minimumRequirements": {
+            "browser": "Browser requirements",
+            "screen": "Screen size requirements"
+        }
+    },
+    "notes": [
+        "Additional notes about the implementation"
+    ]
+} 
